@@ -1,75 +1,43 @@
-# React + TypeScript + Vite
+🎯 Descripción del Proyecto
+Gestor-de-compras es una aplicación web progresiva (PWA) diseñada para simplificar la gestión de productos de consumo diario en el hogar. Con una interfaz intuitiva y automatizaciones inteligentes, ayuda a las familias a mantener el control de su despensa, evitar desperdicios y optimizar sus compras.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+"Nunca más te quedes sin lo esencial, ni compres de más lo que ya tienes."
 
-Currently, two official plugins are available:
+✨ Características Principales
+📱 Gestión Inteligente de Productos
+CRUD completo de productos con categorías personalizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Sistema de estados automáticos: Disponible → Bajo Stock → Agotado
 
-## React Compiler
+Cálculo de umbrales personalizables por producto
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Alertas de vencimiento para productos perecederos
 
-Note: This will impact Vite dev & build performances.
+Unidades de medida adaptables (gramos, litros, unidades)
 
-## Expanding the ESLint configuration
+🔄 Ciclos de Consumo Automatizados
+Registro de apertura de productos con fecha y hora
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Seguimiento de consumo progresivo
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Duración promedio calculada automáticamente
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Historial completo de cada producto
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+🛒 Lista de Compras Inteligente
+Generación automática cuando productos se agotan
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Agregado manual de productos extras
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Marcado como comprado con un clic
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Historial de compras para análisis
+
+📊 Análisis y Estadísticas
+Dashboard con métricas clave en tiempo real
+
+Tendencias de consumo por categoría
+
+Duración promedio de productos
+
+Alertas proactivas de bajo stock y vencimientos
