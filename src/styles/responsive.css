@@ -1,0 +1,143 @@
+/* ===== BOTTOM NAV (VERSIÓN MÓVIL) ===== */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--bg-white);
+  box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
+  z-index: 1000;
+  padding: 10px 0;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-medium);
+}
+
+.bottom-nav-item:hover {
+  color: var(--primary-color);
+}
+
+.bottom-nav-item.active {
+  color: var(--primary-color);
+}
+
+.bottom-nav-icon {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.bottom-nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .content-wrapper {
+    padding: 20px;
+  }
+}
+
+/* Móvil */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .bottom-nav {
+    display: flex;
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
+    padding-bottom: 80px; /* Espacio para el bottom nav */
+  }
+  
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .footer-info {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .product-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .page-header h2 {
+    font-size: 1.6rem;
+  }
+  
+  .product-card {
+    padding: 20px;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 10px;
+  }
+  
+  .page-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .footer-info {
+    padding: 15px;
+  }
+  
+  .btn {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Pantallas muy grandes */
+@media (min-width: 1600px) {
+  .content-wrapper {
+    max-width: 1400px;
+  }
+  
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}

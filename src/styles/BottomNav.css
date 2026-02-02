@@ -1,0 +1,111 @@
+/* BottomNav.css - Estilos específicos para navegación inferior */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  padding: 8px 0;
+  padding-bottom: env(safe-area-inset-bottom); /* Para iPhones con notch */
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  text-decoration: none;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  padding: 4px 2px;
+  border-radius: 8px;
+  margin: 0 2px;
+}
+
+.bottom-nav-item:hover {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.bottom-nav-item.active {
+  color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.bottom-nav-icon {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.bottom-nav-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Botón flotante global */
+.floating-action-button {
+  position: fixed;
+  bottom: 80px; /* 64px del BottomNav + 16px de margen */
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  transition: all 0.2s ease;
+}
+
+.floating-action-button:hover {
+  background-color: #2563eb;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* Ajustes para tablets */
+@media (min-width: 768px) {
+  .bottom-nav {
+    height: 56px;
+    padding: 0;
+  }
+  
+  .bottom-nav-icon {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+  }
+  
+  .bottom-nav-label {
+    font-size: 0.75rem;
+  }
+  
+  .floating-action-button {
+    bottom: 24px;
+    right: 24px;
+  }
+}
+
+/* Ocultar BottomNav en desktop si usas sidebar */
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+  
+  .floating-action-button {
+    display: none; /* O usar un botón en el sidebar */
+  }
+}

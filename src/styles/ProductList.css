@@ -1,0 +1,184 @@
+/* ===== GRID DE PRODUCTOS ===== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+/* ===== TARJETA DE PRODUCTO ===== */
+.product-card-item {
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  padding: 25px;
+  box-shadow: var(--shadow-light);
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-medium);
+}
+
+.product-card-item.warning {
+  border-left: 5px solid var(--danger-color);
+  background: linear-gradient(to right, #fffdfd, #fff8f8);
+}
+
+.product-card-item.urgent {
+  border-left: 5px solid var(--warning-color);
+  background: linear-gradient(to right, #fffdfd, #fef9e7);
+}
+
+.product-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.product-header h3 {
+  font-size: 1.4rem;
+  color: var(--bg-dark);
+  margin-bottom: 5px;
+}
+
+.category {
+  display: inline-block;
+  background: #ecf0f1;
+  color: var(--text-medium);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.product-info {
+  margin-bottom: 25px;
+  flex-grow: 1;
+}
+
+.quantity-row, .expiry-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.quantity-row:last-child, .expiry-row:last-child {
+  border-bottom: none;
+}
+
+.quantity-label {
+  color: var(--text-medium);
+  font-size: 0.9rem;
+}
+
+.expiry-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+/* ===== BOTÓN CONSUMIR ===== */
+.consume-btn {
+  width: 100%;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: 1rem;
+  margin-top: auto;
+}
+
+.consume-btn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* ===== FOOTER DEL CONTENIDO ===== */
+.footer-info {
+  background: var(--bg-white);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-light);
+  margin-top: 30px;
+}
+
+.showing-text {
+  color: var(--text-medium);
+  font-size: 1rem;
+}
+
+.product-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* Estilo para el nombre del hogar en sidebar */
+.household-name {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+  margin-top: 5px;
+  padding-left: 5px;
+}
+
+/* Añade al final de ProductList.css */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+  margin: 40px 0;
+}
+
+.empty-state p {
+  color: var(--text-medium);
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.error-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+  margin: 40px 0;
+}
+
+.error-state h2 {
+  color: var(--danger-color);
+  margin-bottom: 15px;
+}
+
+.error-state p {
+  color: var(--text-medium);
+  margin-bottom: 30px;
+}
+/* En tu archivo CSS (index.css o ProductList.css) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+

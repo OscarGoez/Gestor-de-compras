@@ -1,0 +1,115 @@
+/* ===== SIDEBAR (VERSIÓN WEB) ===== */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+  color: var(--text-light);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 20px 0;
+  box-shadow: var(--shadow-heavy);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-normal);
+}
+
+.sidebar-header {
+  padding: 0 20px 25px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 20px;
+}
+
+.sidebar-header h1 {
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.logo-icon {
+  font-size: 1.6rem;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.nav-item {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-left: 4px solid transparent;
+  border-radius: 4px;
+  margin: 5px 0;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.1);
+  border-left-color: var(--primary-color);
+}
+
+.nav-item.active {
+  background: rgba(52, 152, 219, 0.2);
+  border-left-color: var(--primary-color);
+  font-weight: 600;
+}
+
+.nav-item .nav-icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-item .nav-label {
+  font-size: 0.95rem;
+}
+
+/* Botón agregar producto en sidebar */
+.add-product-sidebar {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  margin: 20px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: calc(100% - 40px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: 0.95rem;
+}
+
+.add-product-sidebar:hover {
+  background: var(--success-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.add-product-icon {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* Footer del sidebar */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: auto;
+}
+
+.sidebar-footer .nav-item {
+  padding: 10px 0;
+  border-left: none;
+  margin: 0;
+}
