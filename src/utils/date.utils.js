@@ -1,12 +1,52 @@
-export const formatDate = (date) => {
-  if (!date) return 'N/A';
+export const formatDate = (date, short = false) => {
+  if (!date) return 'Nunca';
   
-  const d = date.toDate ? date.toDate() : new Date(date);
-  return d.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  try {
+    const dateObj = date.toDate ? date.toDate() : new Date(date);
+    if (isNaN(dateObj.getTime())) return 'Fecha inválida';
+    
+    const now = new Date();
+    const diffTime = now.getTime() - dateObj.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (short) {
+      if (diffDays === 0) return 'Hoy';
+      if (diffDays === 1) return 'Ayer';
+      if (diffDays < 7) return `Hace ${diffDays} días`;
+    }
+    
+    return dateObj.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: short ? 'short' : 'long',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return 'Fecha inválida';
+  }
+};
+
+export const formatDateShort = (date) => {
+  if (!date) return 'Nunca';
+  
+  try {
+    const dateObj = date.toDate ? date.toDate() : new Date(date);
+    if (isNaN(dateObj.getTime())) return 'Fecha inválida';
+    
+    const now = new Date();
+    const diffTime = now.getTime() - dateObj.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoy';
+    if (diffDays === 1) return 'Ayer';
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    
+    return dateObj.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short'
+    });
+  } catch (error) {
+    return 'Fecha inválida';
+  }
 };
 
 export const formatDateTime = (date) => {

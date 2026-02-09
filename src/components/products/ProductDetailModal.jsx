@@ -1,3 +1,4 @@
+// components/products/ProductDetailModal.jsx - VERSIÓN ACTUALIZADA
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -20,6 +21,7 @@ import {
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import ProductDeleteModal from './ProductDeleteModal';
+import ConsumeModal from './ConsumeModal'; // ← NUEVO IMPORT
 
 const ProductDetailModal = ({ 
   product, 
@@ -36,6 +38,7 @@ const ProductDetailModal = ({
   const [opening, setOpening] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showConsumeModal, setShowConsumeModal] = useState(false); // ← NUEVO ESTADO
 
   if (!product) return null;
 
@@ -66,12 +69,9 @@ const ProductDetailModal = ({
     ? Math.round((product.quantityCurrent / product.quantityTotal) * 100) 
     : 0;
 
-  // ✅ FUNCIÓN CORREGIDA: Solo permite abrir si NUNCA se ha abierto
+  // Solo permite abrir si NUNCA se ha abierto
   const canOpenProduct = () => {
-    // No se puede abrir si está agotado
     if (product.status === 'out') return false;
-
-    // Solo se puede abrir si NUNCA se ha abierto
     return !product.lastOpenedAt;
   };
 
@@ -93,11 +93,32 @@ const ProductDetailModal = ({
     }
   };
 
-  // Manejar consumo de producto
-  const handleConsume = async () => {
+  // Consumir con cantidad específica
+  const handleConsumeWithAmount = async (amount) => {
+    setConsuming(true);
+    try {
+      await onConsume(product.id, amount);
+      setShowConsumeModal(false);
+      onClose();
+      
+    } catch (error) {
+      console.error('❌ Error consumiendo:', error);
+      alert('Error: ' + error.message);
+    } finally {
+      setConsuming(false);
+    }
+  };
+
+  // Consumir 1 unidad (comportamiento actual)
+  const handleConsumeOne = async () => {
     setConsuming(true);
     try {
       await onConsume(product.id, 1);
+      onClose();
+      
+    } catch (error) {
+      console.error('❌ Error consumiendo:', error);
+      alert('Error: ' + error.message);
     } finally {
       setConsuming(false);
     }
@@ -108,7 +129,7 @@ const ProductDetailModal = ({
     setOpening(true);
     try {
       await onOpen(product.id);
-      onClose(); // Cerrar modal después de abrir
+      onClose();
     } finally {
       setOpening(false);
     }
@@ -127,7 +148,6 @@ const ProductDetailModal = ({
     }
   };
 
-  // ✅ FUNCIÓN MEJORADA PARA ELIMINAR - CON VALIDACIÓN
   const handleDeleteSuccess = (deletedProductId, productName) => {
     console.log('🔄 handleDeleteSuccess llamado con ID:', deletedProductId);
     
@@ -144,7 +164,6 @@ const ProductDetailModal = ({
     onClose();
   };
 
-  // ✅ FUNCIÓN PARA EDITAR - REDIRIGE A LA URL CON PARÁMETROS
   const handleEdit = () => {
     onClose();
     navigate(`/products?action=edit&id=${product.id}`);
@@ -245,7 +264,7 @@ const ProductDetailModal = ({
             </div>
           </div>
 
-          {/* ✅ SECCIÓN DE ACCIONES PRINCIPALES CORREGIDA */}
+          {/* ✅ SECCIÓN DE ACCIONES PRINCIPALES ACTUALIZADA */}
           
           {/* Mensaje informativo para productos NUNCA abiertos */}
           {product.status !== 'out' && !product.lastOpenedAt && (
@@ -278,26 +297,38 @@ const ProductDetailModal = ({
             </div>
           )}
 
-          {/* Acciones para productos YA ABIERTOS */}
+          {/* Acciones para productos YA ABIERTOS - BOTONES MODIFICADOS */}
           {product.status !== 'out' && product.lastOpenedAt && (
-            <Button
-              variant="outline"
-              onClick={handleConsume}
-              disabled={consuming}
-              className="w-full"
-            >
-              {consuming ? (
-                <>
-                  <span className="animate-spin mr-2">⟳</span>
-                  Consumiendo...
-                </>
-              ) : (
-                <>
-                  <Minus className="h-4 w-4 mr-2" />
-                  Consumir
-                </>
-              )}
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="primary"
+                onClick={() => setShowConsumeModal(true)}
+                disabled={consuming || product.quantityCurrent <= 0}
+                className="w-full"
+              >
+                {consuming ? (
+                  <>
+                    <span className="animate-spin mr-2">⟳</span>
+                    Consumiendo...
+                  </>
+                ) : (
+                  <>
+                    <Minus className="h-4 w-4 mr-2" />
+                    Consumir producto
+                  </>
+                )}
+              </Button>
+              
+              {/* Botón rápido para 1 unidad */}
+              <button
+                onClick={handleConsumeOne}
+                disabled={consuming || product.quantityCurrent < 1}
+                className="w-full px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm flex items-center justify-center"
+              >
+                <Minus className="h-4 w-4 mr-2" />
+                Consumir 1 {product.unit} rápidamente
+              </button>
+            </div>
           )}
 
           {/* Acción para productos AGOTADOS */}
@@ -358,18 +389,20 @@ const ProductDetailModal = ({
                 Abierto el {formatDate(product.lastOpenedAt)}
               </div>
             )}
-            
-            {product.lastOpenedAt && !canOpenProduct() && (
-              <div className="flex items-center text-gray-500">
-                <Info className="h-4 w-4 mr-2" />
-                Podrás volver a abrir después de 24 horas
-              </div>
-            )}
           </div>
         </div>
       </Modal>
 
-      {/* ✅ ProductDeleteModal para confirmar eliminación */}
+      {/* Modal de consumo con cantidad */}
+      <ConsumeModal
+        product={product}
+        isOpen={showConsumeModal}
+        onClose={() => setShowConsumeModal(false)}
+        onConsume={handleConsumeWithAmount}
+        isLoading={consuming}
+      />
+
+      {/* Modal de eliminación */}
       <ProductDeleteModal
         product={product}
         isOpen={showDeleteModal}

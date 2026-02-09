@@ -54,7 +54,7 @@
 /* Botón flotante global */
 .floating-action-button {
   position: fixed;
-  bottom: 80px; /* 64px del BottomNav + 16px de margen */
+  bottom: 80px; 
   right: 20px;
   width: 56px;
   height: 56px;

@@ -19,7 +19,10 @@ import {
   SortDesc,
   X,
   PackageOpen,
-  Filter as FilterIcon 
+  Filter as FilterIcon,
+  ChevronDown,
+  CheckCircle,
+  Info
 } from 'lucide-react';
 import { useHousehold } from '../context/HouseholdContext';
 import { useAuth } from '../context/AuthContext';
@@ -47,16 +50,30 @@ const Products = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
   
-  // Nuevos estados para vista mejorada
+  // Estados para vista mejorada
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [sortBy, setSortBy] = useState('updated'); // 'name', 'quantity', 'expiration', 'status', 'updated'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showCategoriesFilter, setShowCategoriesFilter] = useState(false);
 
   // Obtener acción y producto ID de la URL
   const action = searchParams.get('action');
   const productId = searchParams.get('id');
+
+  // Obtener categorías únicas
+  useEffect(() => {
+    if (products.length > 0) {
+      const uniqueCategories = [...new Set(products
+        .map(p => p.category)
+        .filter(Boolean)
+        .sort())];
+      setCategories(uniqueCategories);
+    }
+  }, [products]);
 
   // Cargar productos
   const loadProducts = async () => {
@@ -203,10 +220,6 @@ const Products = () => {
 
   // Función para eliminar producto
   const handleDeleteProduct = async (productId) => {
-    if (null) {
-      return;
-    }
-
     setActionLoading(true);
     try {
       const result = await productsService.deleteProduct(productId);
@@ -303,39 +316,13 @@ const Products = () => {
 
   // Función para abrir edición desde botón
   const handleEditProduct = (product) => {
-      setSearchParams({ action: 'edit', id: product.id });
-    };
-  
-    // Función para reabastecer producto
-  const handleRestockProduct = async (productId, updates) => {
-    setActionLoading(true);
-    try {
-      // Primero actualizar el producto
-      const result = await productsService.updateProduct(productId, updates);
-      
-      if (result.success) {
-        // Luego registrar el reabastecimiento en el historial
-        try {
-          await consumptionService.logProductRestock(productId, {
-            quantity: updates.quantityCurrent,
-            previousQuantity: 0, // Estaba agotado
-            expirationDate: updates.expirationDate
-          });
-        } catch (logError) {
-          console.warn('⚠️ No se pudo registrar en historial:', logError);
-        }
-        
-        handleCloseModal();
-        return { success: true };
-      } else {
-        throw new Error(result.error || 'Error al reabastecer producto');
-      }
-    } catch (err) {
-      console.error('❌ Error reabasteciendo producto:', err);
-      throw err;
-    } finally {
-      setActionLoading(false);
-    }
+    setSearchParams({ action: 'edit', id: product.id });
+  };
+
+  // Función para abrir detalles
+  const handleViewDetails = (product) => {
+    setSelectedProduct(product);
+    setShowDetailModal(true);
   };
 
   // Función para ordenar productos
@@ -373,9 +360,14 @@ const Products = () => {
     });
   };
 
-  // Filtrar y ordenar productos
+  // Filtrar productos por categoría y filtros
   const filteredAndSortedProducts = sortProducts(
     products.filter(product => {
+      // Filtro por categoría
+      if (selectedCategory !== 'all' && product.category !== selectedCategory) {
+        return false;
+      }
+      
       // Filtro por búsqueda
       if (searchTerm && !product.name?.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
@@ -528,12 +520,11 @@ const Products = () => {
               </div>
             </div>
               
-            {/* CONTROLES PRINCIPALES - REORGANIZADO */}
+            {/* CONTROLES PRINCIPALES */}
             <div className="flex flex-col sm:flex-row gap-3">
-              {/* Controles de vista y orden - MEJOR DISEÑO */}
+              {/* Controles de vista y orden */}
               <div className="flex items-center justify-between sm:justify-start gap-2">
                 <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                  {/* Toggle vista grid/lista */}
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-600 hover:text-gray-900'}`}
@@ -550,7 +541,7 @@ const Products = () => {
                   </button>
                 </div>
 
-                {/* Ordenamiento con dropdown mejorado */}
+                {/* Ordenamiento */}
                 <div className="relative">
                   <div className="flex items-center bg-gray-100 rounded-lg">
                     <select
@@ -603,10 +594,7 @@ const Products = () => {
               </div>
             </div>
           </div>
-  
-  
 
-          
           {/* Búsqueda y filtros */}
           <div className="space-y-4">
             <div className="relative">
@@ -628,10 +616,62 @@ const Products = () => {
               )}
             </div>
             
+            {/* Filtros rápidos */}
             <div className="flex flex-wrap gap-2">
+              {/* Filtro de categorías */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCategoriesFilter(!showCategoriesFilter)}
+                  className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
+                    selectedCategory === 'all' 
+                      ? 'bg-primary-100 text-primary-700' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <FilterIcon className="h-4 w-4 mr-2" />
+                  {selectedCategory === 'all' ? 'Todas categorías' : selectedCategory}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </button>
+                
+                {showCategoriesFilter && (
+                  <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20 max-h-64 overflow-y-auto">
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('all');
+                        setShowCategoriesFilter(false);
+                      }}
+                      className={`flex items-center w-full px-4 py-2 text-sm ${
+                        selectedCategory === 'all' 
+                          ? 'bg-primary-50 text-primary-700' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Todas categorías ({products.length})
+                    </button>
+                    <div className="border-t border-gray-100 my-2"></div>
+                    {categories.map(category => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setShowCategoriesFilter(false);
+                        }}
+                        className={`flex items-center w-full px-4 py-2 text-sm ${
+                          selectedCategory === category 
+                            ? 'bg-primary-50 text-primary-700' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {category} ({products.filter(p => p.category === category).length})
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'all' 
                     ? 'bg-primary-100 text-primary-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -640,44 +680,47 @@ const Products = () => {
                 <FilterIcon className="h-4 w-4 mr-2" />
                 Todos ({stats.total})
               </button>
+              
               <button
                 onClick={() => setFilter('available')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'available' 
                     ? 'bg-green-100 text-green-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <BatteryFull className="h-4 w-4 mr-2" />
+                <CheckCircle className="h-4 w-4 mr-2" />
                 Disponibles ({stats.available})
               </button>
+              
               <button
                 onClick={() => setFilter('low')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'low' 
                     ? 'bg-amber-100 text-amber-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <BatteryLow className="h-4 w-4 mr-2" />
+                <AlertTriangle className="h-4 w-4 mr-2" />
                 Bajo stock ({stats.low})
               </button>
+              
               <button
                 onClick={() => setFilter('out')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'out' 
                     ? 'bg-red-100 text-red-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Battery className="h-4 w-4 mr-2" />
+                <Package className="h-4 w-4 mr-2" />
                 Agotados ({stats.out})
               </button>
               
-              {/* NUEVOS FILTROS ESPECIALES */}
+              {/* Filtros especiales */}
               <button
                 onClick={() => setFilter('opened')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'opened' 
                     ? 'bg-purple-100 text-purple-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -689,7 +732,7 @@ const Products = () => {
               
               <button
                 onClick={() => setFilter('expiring')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   filter === 'expiring' 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -744,21 +787,24 @@ const Products = () => {
           <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
             <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-3">
-              {searchTerm || filter !== 'all' ? 'No hay resultados' : 'Inventario vacío'}
+              {searchTerm || filter !== 'all' || selectedCategory !== 'all' 
+                ? 'No hay resultados' 
+                : 'Inventario vacío'}
             </h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              {searchTerm || filter !== 'all' 
+              {searchTerm || filter !== 'all' || selectedCategory !== 'all'
                 ? 'No se encontraron productos con esos filtros. Intenta cambiar los criterios.'
                 : 'Comienza agregando productos a tu inventario para llevar un control de lo que tienes en casa.'
               }
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {(searchTerm || filter !== 'all') && (
+              {(searchTerm || filter !== 'all' || selectedCategory !== 'all') && (
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchTerm('');
                     setFilter('all');
+                    setSelectedCategory('all');
                   }}
                 >
                   Limpiar filtros
@@ -781,6 +827,7 @@ const Products = () => {
                 Mostrando <span className="font-medium">{filteredAndSortedProducts.length}</span> de{' '}
                 <span className="font-medium">{products.length}</span> productos
                 {searchTerm && ` para "${searchTerm}"`}
+                {selectedCategory !== 'all' && ` en categoría "${selectedCategory}"`}
               </p>
               <div className="text-sm text-gray-500">
                 Ordenado por: {
@@ -795,7 +842,7 @@ const Products = () => {
             
             {/* VISTA CONDICIONAL: Grid o Lista */}
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredAndSortedProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -806,6 +853,7 @@ const Products = () => {
                     onOpen={handleOpenProduct}
                     onRestore={handleRestoreProduct}
                     onEdit={() => handleEditProduct(product)}
+                    onViewDetails={() => handleViewDetails(product)}
                   />
                 ))}
               </div>
@@ -818,10 +866,7 @@ const Products = () => {
                     onConsume={handleConsumeProduct}
                     onOpen={handleOpenProduct}
                     onRestore={handleRestoreProduct}
-                    onViewDetails={() => {
-                      setSelectedProduct(product);
-                      setShowDetailModal(true);
-                    }}
+                    onViewDetails={() => handleViewDetails(product)}
                   />
                 ))}
               </div>
@@ -830,15 +875,11 @@ const Products = () => {
         )}
       </main>
 
-      {/* Botón flotante ajustado */}
-      <button className="floating-action-button" onClick={() => setSearchParams({ action: 'add' })}>
-        <Plus className="h-6 w-6" />
-      </button>
+     
 
-
-      {/* Modal para agregar/editar producto - CONTROLADO POR URL */}
+      {/* Modal para agregar/editar producto */}
       <Modal
-        isOpen={!!action} // Se abre cuando hay una acción en la URL
+        isOpen={!!action}
         onClose={handleCloseModal}
         title={
           action === 'restock' ? `Reabastecer "${selectedProduct?.name}"` :
@@ -855,8 +896,8 @@ const Products = () => {
               } else if (action === 'edit' && selectedProduct) {
                 return handleUpdateProduct(selectedProduct.id, data);
               }
-                else if (action === 'restock' && selectedProduct) {
-                  return handleUpdateProduct(selectedProduct.id, data);
+              else if (action === 'restock' && selectedProduct) {
+                return handleUpdateProduct(selectedProduct.id, data);
               }
             }}
             onClose={handleCloseModal}
@@ -883,7 +924,7 @@ const Products = () => {
         </div>
       </Modal>
 
-      {/* Modal de detalles de producto (para vista lista) */}
+      {/* Modal de detalles de producto */}
       <ProductDetailModal
         product={selectedProduct}
         isOpen={showDetailModal}

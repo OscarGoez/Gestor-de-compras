@@ -673,6 +673,8 @@ export const productsService = {
     }
   },
 
+  
+
   // Consumir producto - 
   async consumeProduct(productId, amount = 1) {
     try {
