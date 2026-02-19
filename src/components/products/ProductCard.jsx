@@ -1,6 +1,7 @@
 // components/products/ProductCard.jsx - VERSIÓN ACTUALIZADA
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { 
   Package, 
   Edit2, 
@@ -19,11 +20,12 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Sparkles,
   Eye,
   Plus
 } from 'lucide-react';
 import ProductDeleteModal from './ProductDeleteModal';
-import ConsumeModal from './ConsumeModal'; // ← NUEVO IMPORT
+import ConsumeModal from './ConsumeModal'; 
 import { formatDateShort } from '../../utils/date.utils';
 
 const ProductCard = ({ 
@@ -73,6 +75,7 @@ const ProductCard = ({
       };
     }
   };
+  
 
   const statusInfo = getStatusInfo(product.status);
   const StatusIcon = statusInfo.icon;

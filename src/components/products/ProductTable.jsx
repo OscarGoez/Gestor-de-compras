@@ -33,6 +33,8 @@ const ProductTable = ({ products, onConsume, onOpen, onRestore }) => {
     return 'bg-green-500';
   };
 
+  
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
