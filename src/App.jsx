@@ -1,4 +1,4 @@
-// App.jsx - VERSIÓN COMPLETA CON SOPORTE OFFLINE
+// App.jsx - VERSIÓN CORREGIDA
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -12,6 +12,8 @@ import Products from './pages/Products';
 import ShoppingList from './pages/ShoppingList';
 import Analytics from './pages/Analytics';
 import ExpiringSoon from './pages/ExpiringSoon';
+import KitchenAI from './pages/KitchenAI';
+import SavedRecipes from './pages/SavedRecipes';
 import Settings from './pages/Settings';
 import BottomNav from './components/layout/BottomNav';
 import { useOffline } from './hooks/useOffline';
@@ -55,9 +57,6 @@ const AppLayout = ({ children }) => {
       <div className="app-content pb-20 md:pb-0">
         {children}
       </div>
-      <div className="md:hidden">
-        <BottomNav />
-      </div>
     </div>
   );
 };
@@ -84,7 +83,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
-              {/* Rutas protegidas */}
+              {/* Rutas protegidas - TODAS con AppLayout y ProtectedRoute */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <AppLayout>
@@ -116,6 +115,22 @@ function App() {
                   </AppLayout>
                 </ProtectedRoute>
               } />
+
+              <Route path="/kitchen" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <KitchenAI />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/saved-recipes" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <SavedRecipes />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
               
               <Route path="/settings" element={
                 <ProtectedRoute>
@@ -137,6 +152,10 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+            
+            {/* BottomNav GLOBAL - fuera de Routes pero visible en todas las páginas */}
+            <BottomNav />
+            
           </HouseholdProvider>
         </AuthProvider>
       </Router>

@@ -16,6 +16,7 @@ import { useHousehold } from '../context/HouseholdContext';
 import Header from '../components/layout/Header';
 import Loader from '../components/common/Loader';
 import Button from '../components/common/Button';
+import ExpiringAIInsights from '../components/expiring/ExpiringAIInsights';
 
 const ExpiringSoon = () => {
   const { products, loading } = useProducts();
@@ -48,6 +49,17 @@ const ExpiringSoon = () => {
       return null;
     }
   };
+
+  const [consumptionHistory, setConsumptionHistory] = useState([]);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      // Obtener últimos consumos para contexto
+      const history = await consumptionService.getRecentConsumption(householdId, 10);
+      setConsumptionHistory(history);
+    };
+    if (householdId) loadHistory();
+  }, [householdId]);
 
   // Filtrar y ordenar productos
   const getFilteredProducts = () => {
@@ -360,6 +372,15 @@ const ExpiringSoon = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {filteredProducts.length > 0 && (
+          <div className="mb-8">
+            <ExpiringAIInsights 
+              products={filteredProducts}
+              consumptionHistory={consumptionHistory}
+            />
           </div>
         )}
 

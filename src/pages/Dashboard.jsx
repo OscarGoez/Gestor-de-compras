@@ -27,9 +27,13 @@ import {
   ArrowRight,
   Check,
   TrendingDown,
+  TrendingUp,
   Smile,
   Frown,
-  Meh
+  Meh,
+  ChefHat,
+  Sparkles,
+  Bookmark
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useHousehold } from '../context/HouseholdContext';
@@ -39,6 +43,9 @@ import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import { productsService } from '../api/products.service';
 import { shoppingService } from '../api/shopping.service';
+import { usePredictions } from '../hooks/usePredictions';
+import ProductPredictionCard from '../components/analytics/ProductPredictionCard';
+import { limit } from 'firebase/firestore';
 
 // Componente auxiliar para estado del inventario (NUEVO)
 const InventoryStatus = ({ status, total, low, out, shopping }) => {
@@ -194,6 +201,17 @@ const Dashboard = () => {
     error: productsError,
     refreshProducts
   } = useProducts();
+
+  const { 
+    dashboardPredictions,
+    soonToExpire, 
+    loading: predictionsLoading,
+    rateLimited,
+    refresh: refreshPredictions 
+  } = usePredictions(products, householdId,{
+    minConfidence: 'media',
+    limit : 10
+  });
   
   const safeMembers = Array.isArray(members) ? members : [];
   
@@ -218,9 +236,9 @@ const Dashboard = () => {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       // 1. Cargar productos
       let productsList = products;
@@ -230,7 +248,7 @@ const Dashboard = () => {
           productsList = productsResult.data || [];
         }
       }
-      
+
       // 2. Cargar lista de compras
       let shoppingItemsCount = 0;
       try {
@@ -241,37 +259,46 @@ const Dashboard = () => {
       } catch (shoppingError) {
         console.warn('Error lista compras:', shoppingError);
       }
-      
-      // 3. Calcular estadísticas simplificadas
+
+      // 3. Calcular estadísticas
       const totalProducts = productsList.length;
       const lowStock = productsList.filter(p => p.status === 'low').length;
       const outOfStock = productsList.filter(p => p.status === 'out').length;
       const available = productsList.filter(p => p.status === 'available').length;
-      
-      // Productos que expiran pronto
+
+      // 4. Calcular productos que expiran pronto (para la sección de vencimientos)
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Productos que vencen en los próximos 7 días
       const expiringSoon = productsList.filter(p => {
         if (!p.expirationDate) return false;
         try {
-          const expDate = p.expirationDate.toDate ? 
-            p.expirationDate.toDate() : 
-            new Date(p.expirationDate);
+          // Manejar diferentes formatos de fecha
+          let expDate;
+          if (p.expirationDate?.toDate) {
+            expDate = p.expirationDate.toDate(); // Firestore Timestamp
+          } else {
+            expDate = new Date(p.expirationDate); // String ISO
+          }
+          expDate.setHours(0, 0, 0, 0);
+
           return expDate >= today && expDate <= nextWeek;
         } catch {
           return false;
         }
       }).length;
-      
-      // Productos urgentes (los que necesitan atención inmediata)
+
+      // 5. Productos urgentes (los que necesitan atención inmediata)
       const urgentProducts = [];
-      
+
       // Agotados (más urgente)
       productsList
         .filter(p => p.status === 'out')
         .slice(0, 3)
         .forEach(p => urgentProducts.push({ ...p, reason: 'out' }));
-      
+
       // Bajo stock
       if (urgentProducts.length < 3) {
         productsList
@@ -279,16 +306,20 @@ const Dashboard = () => {
           .slice(0, 3 - urgentProducts.length)
           .forEach(p => urgentProducts.push({ ...p, reason: 'low' }));
       }
-      
-      // Por vencer
+
+      // Por vencer (solo si aún no tenemos suficientes urgentes)
       if (urgentProducts.length < 3) {
         productsList
           .filter(p => {
             if (!p.expirationDate) return false;
             try {
-              const expDate = p.expirationDate.toDate ? 
-                p.expirationDate.toDate() : 
-                new Date(p.expirationDate);
+              let expDate;
+              if (p.expirationDate?.toDate) {
+                expDate = p.expirationDate.toDate();
+              } else {
+                expDate = new Date(p.expirationDate);
+              }
+              expDate.setHours(0, 0, 0, 0);
               return expDate >= today && expDate <= nextWeek;
             } catch {
               return false;
@@ -297,20 +328,22 @@ const Dashboard = () => {
           .slice(0, 3 - urgentProducts.length)
           .forEach(p => urgentProducts.push({ ...p, reason: 'expiring' }));
       }
-      
+
+      // 6. Actualizar estado con TODAS las estadísticas
       setStats({
         totalProducts,
         lowStock,
         outOfStock,
         available,
         shoppingItems: shoppingItemsCount,
-        expiringSoon,
+        expiringSoon,        // Para la sección de vencimientos
+        expiringCount: expiringSoon, // Para el badge de cocina
         urgentProducts
       });
-      
+
       setLastUpdated(new Date());
       setError(null);
-      
+
     } catch (err) {
       console.error('Error en dashboard:', err);
       setError('No se pudieron cargar los datos. Intenta de nuevo.');
@@ -323,6 +356,7 @@ const Dashboard = () => {
   const handleRefresh = async () => {
     if (householdId) {
       await refreshProducts();
+      await refreshPredictions();
     }
     await loadDashboardData();
   };
@@ -478,19 +512,20 @@ const Dashboard = () => {
               <button
                 onClick={handleRefresh}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-                title="Actualizar"
+                title="Expirar"
               >
                 <RefreshCw className="h-5 w-5" />
               </button>
               <Button
-                variant="primary"
+                variant="contrast"
                 size="sm"
-                onClick={() => navigate('/products?action=add')}
+                onClick={() => navigate('/expiring')}
                 className="rounded-xl"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Agregar
+                <Calendar className="h-4 w-4 mr-1" />
+                Fechas
               </Button>
+              
             </div>
           </div>
         </div>
@@ -511,71 +546,86 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* SEECCIÓN 2: Acciones principales */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <Zap className="h-5 w-5 text-amber-500 mr-2" />
-            Acciones rápidas
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <QuickActionCard
-              icon={Plus}
-              title="Agregar producto"
-              description="Registra algo nuevo en la casa"
-              color={{
-                bg: 'bg-white',
-                border: 'border-blue-200',
-                iconBg: 'bg-blue-100',
-                icon: 'text-blue-600'
-              }}
-              onClick={() => navigate('/products?action=add')}
-            />
+        
+
+        {/* SECCIÓN 4: Predicciones de consumo (MEJORADA) */}
+        {!predictionsLoading && dashboardPredictions.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center">
+                <TrendingUp className="h-5 w-5 text-blue-500 mr-2" />
+                Productos que vigilar
+              </h2>
+              <span className="text-xs text-gray-500">
+                Basado en tu historial de consumo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {dashboardPredictions.slice(0, 3).map(pred => {
+                const product = products.find(p => p.id === pred.productId);
+                if (!product) return null;
+
+                return (
+                  <ProductPredictionCard
+                    key={pred.productId}
+                    prediction={pred}
+                    product={product}
+                    onClick={() => navigate(`/products?id=${product.id}`)}
+                  />
+                );
+              })}
+            </div>
             
-            <QuickActionCard
-              icon={ShoppingCart}
-              title="Ir de compras"
-              description="Ver lista de compras"
-              color={{
-                bg: 'bg-white',
-                border: stats.shoppingItems > 0 ? 'border-red-200' : 'border-gray-200',
-                iconBg: stats.shoppingItems > 0 ? 'bg-red-100' : 'bg-gray-100',
-                icon: stats.shoppingItems > 0 ? 'text-red-600' : 'text-gray-600'
-              }}
-              badge={stats.shoppingItems > 0 ? {
-                text: `${stats.shoppingItems}`,
-                color: 'bg-red-100 text-red-700'
-              } : null}
-              onClick={() => navigate('/shopping-list')}
-            />
-            
-            <QuickActionCard
-              icon={Package}
-              title="Ver productos"
-              description="Todos los productos en casa"
-              color={{
-                bg: 'bg-white',
-                border: 'border-green-200',
-                iconBg: 'bg-green-100',
-                icon: 'text-green-600'
-              }}
-              onClick={() => navigate('/products')}
-            />
-            
-            <QuickActionCard
-              icon={BarChart3}
-              title="Ver estadísticas"
-              description="Cómo usamos los productos"
-              color={{
-                bg: 'bg-white',
-                border: 'border-purple-200',
-                iconBg: 'bg-purple-100',
-                icon: 'text-purple-600'
-              }}
+            {/* Enlace a Analytics para ver más */}
+            <button
               onClick={() => navigate('/analytics')}
-            />
+              className="w-full mt-4 py-3 text-primary-600 hover:text-primary-700 font-medium flex items-center justify-center border border-primary-200 rounded-xl hover:bg-primary-50 transition-colors"
+            >
+              Ver análisis detallado de todos los productos
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </button>
           </div>
-        </div>
+        )}
+
+        {rateLimited && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-100 rounded-lg mr-3">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-800">
+                  Modo ahorro de API activado
+                </p>
+                <p className="text-xs text-amber-700">
+                  Mostrando predicciones básicas. Las análisis completos se reanudarán en breve.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mensaje cuando no hay predicciones relevantes */}
+        {!predictionsLoading && dashboardPredictions.length === 0 && predictions.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+              <div className="flex items-center">
+                <Info className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0" />
+                <p className="text-gray-700">
+                  Estamos aprendiendo tus patrones de consumo. 
+                  <button 
+                    onClick={() => navigate('/analytics')}
+                    className="text-primary-600 font-medium ml-2 hover:underline"
+                  >
+                    Ver análisis preliminar
+                  </button>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* SEECCIÓN 3: Productos que necesitan atención */}
         {stats.urgentProducts.length > 0 && (
